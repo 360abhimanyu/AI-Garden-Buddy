@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Garden Buddy</title>
+<style>
+:root{--green:#246b45;--light:#f4f8f2;--dark:#173b29;--line:#dbe7dc;--accent:#e7f2e6}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif;background:var(--light);color:#1e2d24}
+header{background:linear-gradient(135deg,#173b29,#2d7b4d);color:white;padding:42px 20px;text-align:center}header h1{font-size:42px;margin:0 0 8px}header p{margin:0 auto;max-width:720px;font-size:17px;line-height:1.6;opacity:.95}
+.badge{display:inline-block;margin-bottom:14px;padding:7px 12px;border:1px solid rgba(255,255,255,.35);border-radius:999px;font-size:13px}
+main{max-width:1100px;margin:30px auto;padding:0 18px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}.card{background:white;border:1px solid var(--line);border-radius:18px;padding:24px;box-shadow:0 8px 25px rgba(31,70,45,.06)}h2{margin-top:0;color:var(--dark)}label{display:block;font-weight:650;margin:14px 0 6px}input,select,textarea{width:100%;padding:12px 13px;border:1px solid #cbd9ce;border-radius:10px;background:#fff;font:inherit}button{border:0;border-radius:10px;padding:12px 17px;background:var(--green);color:#fff;font-weight:700;cursor:pointer;margin-top:18px}button:hover{filter:brightness(.94)}button.secondary{background:#edf5ed;color:var(--dark);border:1px solid var(--line)}.full{grid-column:1/-1}.result{white-space:pre-wrap;line-height:1.65;background:#f7fbf6;border-left:4px solid var(--green);padding:18px;border-radius:10px;min-height:120px}.status{font-size:13px;color:#5b6e61;margin-top:10px}.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.chip{background:var(--accent);padding:8px 10px;border-radius:999px;font-size:13px}.mission{background:#fffdf4;border-color:#eadfb1}.footer{text-align:center;padding:28px;color:#617064;font-size:13px}.quote{font-style:italic;color:#3c5947}
+@media(max-width:760px){.grid{grid-template-columns:1fr}header h1{font-size:32px}.full{grid-column:auto}}
+</style>
+</head>
+<body>
+<header>
+  <div class="badge">Open-Source AI • Local-first • Touch Grass</div>
+  <h1>AI Garden Buddy</h1>
+  <p>A practical garden assistant that turns AI advice into real-world outdoor tasks. Create a planting plan, get this week's garden jobs, and then close the laptop and go outside.</p>
+</header>
+<main>
+<div class="grid">
+<section class="card">
+<h2>Build My Garden Plan</h2>
+<label for="city">City / Region</label><input id="city" placeholder="e.g. Lucknow, India">
+<label for="month">Month / Season</label><input id="month" placeholder="e.g. October / autumn">
+<label for="space">Growing Space</label><select id="space"><option>Balcony</option><option>Backyard</option><option>Terrace</option><option>Community garden</option><option>Indoor + outdoor</option></select>
+<label for="sunlight">Sunlight</label><select id="sunlight"><option>Full sun</option><option>Partial sun</option><option>Mostly shade</option></select>
+<label for="experience">Experience</label><select id="experience"><option>Beginner</option><option>Some experience</option><option>Experienced</option></select>
+<label for="goal">What do you want to grow?</label><input id="goal" value="Easy vegetables and herbs">
+<button onclick="makePlan()">Create AI Garden Plan</button>
+<div id="planStatus" class="status"></div>
+</section>
+
+<section class="card mission">
+<h2>Today's Outdoor Mission</h2>
+<p>Let AI give you a short task designed to get you away from the screen.</p>
+<label for="minutes">Available time</label><select id="minutes"><option value="10">10 minutes</option><option value="20" selected>20 minutes</option><option value="30">30 minutes</option><option value="45">45 minutes</option><option value="60">60 minutes</option></select>
+<button onclick="makeMission()">Give Me a Mission</button>
+<div id="missionStatus" class="status"></div>
+<div id="mission" class="result" style="margin-top:14px">Your mission will appear here.</div>
+</section>
+
+<section class="card full">
+<h2>Your AI Garden Plan</h2>
+<div id="plan" class="result">Fill in your garden details and create a plan.</div>
+<div class="chips"><span class="chip">Plant</span><span class="chip">Observe</span><span class="chip">Water</span><span class="chip">Grow</span><span class="chip">Touch Grass</span></div>
+</section>
+
+<section class="card full">
+<h2>Why Local Open-Source AI?</h2>
+<p>AI Garden Buddy is designed around a local open-weight model through Ollama. The garden details can stay on your own machine instead of being sent to a closed AI service. The model can also be replaced with another compatible open model.</p>
+<p class="quote">“The best garden advice is the advice that gets you outside.”</p>
+</section>
+</div>
+</main>
+<footer class="footer">AI Garden Buddy • Built for the Hacktoberfest Open-Source AI Challenge: Week 1 — Touch Grass</footer>
+<script>
+async function postJSON(url,data){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});return r.json()}
+async function makePlan(){
+ const status=document.getElementById('planStatus'), out=document.getElementById('plan');
+ status.textContent='Creating your plan with local AI...'; out.textContent='Thinking...';
+ try{const d=await postJSON('/api/garden-plan',{city:city.value,month:month.value,space:space.value,sunlight:sunlight.value,experience:experience.value,goal:goal.value});out.textContent=d.answer;status.textContent=d.ok?`Generated with ${d.model}.`:'AI unavailable — showing a safe starter plan.'}catch(e){out.textContent='Could not connect to the app server. Start the Flask server and try again.';status.textContent='Connection error.'}
+}
+async function makeMission(){
+ const status=document.getElementById('missionStatus'), out=document.getElementById('mission'); status.textContent='Creating your outdoor mission...';out.textContent='Thinking...';
+ try{const d=await postJSON('/api/outdoor-mission',{minutes:minutes.value});out.textContent=d.answer;status.textContent=d.ok?`Generated with ${d.model}.`:'Showing a starter mission.'}catch(e){out.textContent='Could not connect to the app server.';status.textContent='Connection error.'}
+}
+</script>
+</body>
+</html>
